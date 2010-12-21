@@ -225,7 +225,7 @@ func (z *stemmer) m ()(int) {
 
 
 func (z *stemmer) vowelinstem () (bool) {
-	for i:=0; i!=z.j; i++ {
+	for i:=0; i<=z.j; i++ {
 		if !z.consonant(i) {
 			return true
 		}

@@ -7,14 +7,13 @@ import (
 
 type stemmerTest struct {in string; out string}
 
-func tTestStemmer (t *testing.T) {
+func TestStemmer (t *testing.T) {
 	for _,test := range(tests) {
 		var stemmed = Stem(test.in)
 		if stemmed != test.out {
-			t.Errorf("%s want %s have %s\n", test.in, test.out, stemmed)
+			t.Errorf("'%s' want '%s' have '%s'\n", test.in, test.out, stemmed)
 		}
 	}
-	fmt.Printf("Hello Owl!")
 }
 
 
@@ -191,7 +190,7 @@ func TestStep1ab (t *testing.T) {
     z :=stemmer{[]byte(term), 0, len(term)-1}
     z.step1ab()
     have := string(z.b[:z.k+1])
- 
+
     if have != want {
       t.Errorf("Step1ab (%s) failed, want: %s, have: %s\n", term, want, have)
     }
@@ -212,6 +211,13 @@ func TestVowelinstem (t *testing.T) {
   if (!z.vowelinstem()) {
     t.Errorf("vowelinstem failed")
   }
+  z  = stemmer{[]byte("toy"), 2,2}
+  if (!z.ends(Y)) {
+    t.Errorf("s vowelinstem failed")
+  }
+  if (!z.vowelinstem()) {
+    t.Errorf("v vowelinstem failed")
+  }
 }
 
 func TestDoubleC (t *testing.T){
@@ -230,6 +236,7 @@ func TestDoubleC (t *testing.T){
 func TestStep1c (t *testing.T) {
   test := map[string]string {
     "tony" : "toni",
+    "toy" : "toi",
     "hobo" : "hobo",
   }
 
@@ -238,7 +245,7 @@ func TestStep1c (t *testing.T) {
     z.step1c()
     have := string(z.b)
     if have != should {
-      t.Errorf("step1c (%s) failed have: %s want %s\n", have, should)
+      t.Errorf("step1c (%s) failed have: %s want %s\n", term, have, should)
     }
   }
 }
