@@ -612,19 +612,19 @@ func (z *stemmer) step5() {
 //   length, so 0 <= k' <= k.
 //*/
 func (z *stemmer) stem (b []byte) (int) {
-	if len (b) <= 1{
-		return len(b)-1
-	}
+
 	z.b = b
   z.j = 0
 	z.k = len(b)-1
 
-	z.step1ab()
-	z.step1c()
-	z.step2()
-	z.step3()
-	z.step4()
-	z.step5()
+	if z.k > 1{
+    z.step1ab()
+    z.step1c()
+    z.step2()
+    z.step3()
+    z.step4()
+    z.step5()
+  }
 	return z.k
 }
 
@@ -640,6 +640,7 @@ func Stem(word string)(string) {
 	if bn+1 <= len(z.b) {
 		return (string)(z.b[:bn+1])
 	}
+  log ("%s %s \n", word, z.String())
 	return ""
 }
 
