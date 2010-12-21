@@ -9,7 +9,7 @@ available for download here:
 The original algorithm is described in the paper:
 
     M.F. Porter, 1980, An algorithm for suffix stripping, Program, 14(3) pp
-130-137.
+    130-137.
 
 
 While the internal implementation and interface is nearly identical to
@@ -47,4 +47,4 @@ restrict the functionality, but it is nuisance.
 
 TODO:
 ----- 
-* howto goinstall
+* byte slice API to void roundtripping to string and back 
