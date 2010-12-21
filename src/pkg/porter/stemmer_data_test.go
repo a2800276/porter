@@ -191,13 +191,56 @@ func TestStep1ab (t *testing.T) {
     z :=stemmer{[]byte(term), 0, len(term)-1}
     z.step1ab()
     have := string(z.b[:z.k+1])
-    
+ 
     if have != want {
       t.Errorf("Step1ab (%s) failed, want: %s, have: %s\n", term, want, have)
     }
 
   }
+}
 
+func TestVowelinstem (t *testing.T) {
+  z := stemmer{[]byte("mmmmmmm"), 6,6}
+  if (z.vowelinstem()) {
+    t.Errorf("vowelinstem failed")
+  }
+  z  = stemmer{[]byte("iiiiiii"), 6,6}
+  if (!z.vowelinstem()) {
+    t.Errorf("vowelinstem failed")
+  }
+  z  = stemmer{[]byte("mimmmmm"), 6,6}
+  if (!z.vowelinstem()) {
+    t.Errorf("vowelinstem failed")
+  }
+}
+
+func TestDoubleC (t *testing.T){
+
+  z := stemmer{[]byte("mmmmmmm"), 6,6}
+  if (!z.doublec(4)) {
+    t.Errorf("doublec failed")
+  }
+  z  = stemmer{[]byte("iiiiiii"), 6,6}
+  if (z.doublec (4)) {
+    t.Errorf("doublec failed")
+  }
+
+}
+
+func TestStep1c (t *testing.T) {
+  test := map[string]string {
+    "tony" : "toni",
+    "hobo" : "hobo",
+  }
+
+  for term, should := range(test) {
+    z:= stemmer{[]byte(term), 0, len(term)-1}
+    z.step1c()
+    have := string(z.b)
+    if have != should {
+      t.Errorf("step1c (%s) failed have: %s want %s\n", have, should)
+    }
+  }
 }
 
 var tests = []stemmerTest {
