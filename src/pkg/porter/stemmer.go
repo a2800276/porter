@@ -1,34 +1,15 @@
+
+// The package `porter` implements the Porter stemming algorithm, following,
+// for all pratical purposes, the algorithm published in:
+//
+//     Porter, 1980, An algorithm for suffix stripping, Program, Vol. 14,
+//     no. 3, pp 130-137
+//
+// For more information on the alorithm itself, see:
+//
+//     http://tartarus.org/~martin/PorterStemmer/
+//
 package porter
-
-/* This is the Porter stemming algorithm, coded up as thread-safe ANSI C
-   by the author.
-
-   It may be be regarded as cononical, in that it follows the algorithm
-   presented in
-
-   Porter, 1980, An algorithm for suffix stripping, Program, Vol. 14,
-   no. 3, pp 130-137,
-
-   only differing from it at the points maked --DEPARTURE-- below.
-
-   See also http://www.tartarus.org/~martin/PorterStemmer
-
-   The algorithm as described in the paper could be exactly replicated
-   by adjusting the points of DEPARTURE, but this is barely necessary,
-   because (a) the points of DEPARTURE are definitely improvements, and
-   (b) no encoding of the Porter stemmer I have seen is anything like
-   as exact as this version, even with the points of DEPARTURE!
-
-   You can compile it on Unix with 'gcc -O3 -o stem stem.c' after which
-   'stem' takes a list of inputs and sends the stemmed equivalent to
-   stdout.
-
-   The algorithm as encoded here is particularly fast.
-
-   Release 2 (the more old-fashioned, non-thread-safe version may be
-   regarded as release 1.)
-*/
-
 
 import (
 	"bytes"
@@ -36,8 +17,9 @@ import (
 	"fmt"
 )
 
-
 var (
+  // unfortunately, casting to []byte makes things non-const, 
+  // so these are `vars`. :(
 	__BLANK  = []byte("")
 	_ABLE    = []byte("able")
 	_AL      = []byte("al")
@@ -104,39 +86,15 @@ var (
 
 
 type stemmer struct {
-	b []byte
-	j int
-	k int
+	b []byte // bytes to work
+	j int    // internal pointer
+	k int    // points to the last character in b 
 }
 
 
-///* The main part of the stemming algorithm starts here.
-//*/
 //
+// Check wheter the letter at pos is a consonant
 //
-//
-///* Member b is a buffer holding a word to be stemmed. The letters are in
-//   b[0], b[1] ... ending at b[z->k]. Member k is readjusted downwards as
-//   the stemming progresses. Zero termination is not in fact used in the
-//   algorithm.
-//
-//   Note that only lower case sequences are stemmed. Forcing to lower case
-//   should be done before stem(...) is called.
-//
-//
-//   Typical usage is:
-//
-//       struct stemmer * z = create_stemmer();
-//       char b[] = "pencils";
-//       int res = stem(z, b, 6);
-//           /- stem the 7 characters of b[0] to b[6]. The result, res,
-//              will be 5 (the 's' is removed). -/
-//       free_stemmer(z);
-//*/
-
-/*
- * Check wheter the letter at position i is a consonant
- */
 func (z *stemmer) consonant(pos int) bool {
 	if len(z.b) <= pos {
 		return false
@@ -162,23 +120,25 @@ func (z *stemmer) consonant(pos int) bool {
 	return true
 }
 
+//
+// Check whether the letter at pos is a vowel.
+//
 func (z *stemmer) vowel(pos int) bool {
 	return !z.consonant(pos)
 }
 
 
-/* m(z) measures the number of consonant sequences between 0 and j. if c is
-   a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
-   presence,
-
-      <c><v>       gives 0
-      <c>vc<v>     gives 1
-      <c>vcvc<v>   gives 2
-      <c>vcvcvc<v> gives 3
-      ....
-*/
-
-
+// 
+//   z.m() measures the number of consonant sequences between 0 and j. if c is
+//   a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
+//   presence,
+//
+//      <c><v>       gives 0
+//      <c>vc<v>     gives 1
+//      <c>vcvc<v>   gives 2
+//      <c>vcvcvc<v> gives 3
+//      ....
+//
 func (z *stemmer) m() int {
 	var n, i int
 
@@ -218,9 +178,9 @@ func (z *stemmer) m() int {
 	return n
 }
 
-/* vowelinstem(z) is TRUE <=> 0,...j contains a vowel */
-
-
+//
+// z.vowelinstem() is TRUE if 0,...j contains a vowel.
+//
 func (z *stemmer) vowelinstem() bool {
 	for i := 0; i <= z.j; i++ {
 		if !z.consonant(i) {
@@ -230,9 +190,9 @@ func (z *stemmer) vowelinstem() bool {
 	return false
 }
 
-/* doublec(z, j) is TRUE <=> j,(j-1) contain a double consonant. */
-
-
+//
+// z.doublec(j) is TRUE if j,(j-1) contain a double consonant. 
+//
 func (z *stemmer) doublec(j int) bool {
 	if 1 > j {
 		return false
@@ -244,16 +204,14 @@ func (z *stemmer) doublec(j int) bool {
 
 }
 
-/* cvc(z, i) is TRUE <=> i-2,i-1,i has the form consonant - vowel - consonant
-   and also if the second c is not w,x or y. this is used when trying to
-   restore an e at the end of a short word. e.g.
-
-      cav(e), lov(e), hop(e), crim(e), but
-      snow, box, tray.
-
-*/
-
-
+//
+// z.cvc(i) is TRUE if i-2,i-1,i has the form consonant - vowel - consonant
+// and also if the second c is not w,x or y. this is used when trying to
+// restore an e at the end of a short word. e.g.
+//
+//    cav(e), lov(e), hop(e), crim(e), but
+//    snow, box, tray.
+//
 func (z *stemmer) cvc(i int) bool {
 	if 2 > i || !z.consonant(i) || z.consonant(i-1) || !z.consonant(i-2) {
 		return false
@@ -269,8 +227,11 @@ func (z *stemmer) cvc(i int) bool {
 	return true
 }
 
-
-/* ends(z, s) is TRUE <=> 0,...k ends with the string s. */
+//
+// z.ends(s) is TRUE if 0,...k ends with the string `s`
+// as a side effect, j is set to the start of the
+// suffix `s` 
+//
 func (z *stemmer) ends(s []byte) bool {
 	length := len(s)
 	//fmt.Printf("%d %d\n", len(z.b), z.k)
@@ -284,10 +245,10 @@ func (z *stemmer) ends(s []byte) bool {
 	return true
 }
 
-/* setto(z, s) sets (j+1),...k to the characters in the string s, readjusting
-   k. */
-
-
+//
+// z.setto(s) sets (j+1),...k to the characters in the string s, 
+// readjusting k
+//   
 func (z *stemmer) setto(s []byte) {
 	j := z.j
 
@@ -295,37 +256,36 @@ func (z *stemmer) setto(s []byte) {
 	z.k = j+len(s)
 }
 
-/* r(z, s) is used further down. */
-
+//
+// `r` is a shortcut to replace only after a conconsant sequence
+//
 func (z *stemmer) r(s []byte) {
 	if 0 < z.m() {
 		z.setto(s)
 	}
 }
 
-/* step1ab(z) gets rid of plurals and -ed or -ing. e.g.
-
-   caresses  ->  caress
-   ponies    ->  poni
-   ties      ->  ti
-   caress    ->  caress
-   cats      ->  cat
-
-   feed      ->  feed
-   agreed    ->  agree
-   disabled  ->  disable
-
-   matting   ->  mat
-   mating    ->  mate
-   meeting   ->  meet
-   milling   ->  mill
-   messing   ->  mess
-
-   meetings  ->  meet
-
-*/
-
-
+//
+//   z.step1ab() gets rid of plurals and -ed or -ing. e.g.
+//
+//   caresses  ->  caress
+//   ponies    ->  poni
+//   ties      ->  ti
+//   caress    ->  caress
+//   cats      ->  cat
+//
+//   feed      ->  feed
+//   agreed    ->  agree
+//   disabled  ->  disable
+//
+//   matting   ->  mat
+//   mating    ->  mate
+//   meeting   ->  meet
+//   milling   ->  mill
+//   messing   ->  mess
+//
+//   meetings  ->  meet
+//
 func (z *stemmer) step1ab() {
 	if 's' == z.b[z.k] {
 		switch {
@@ -370,19 +330,20 @@ func (z *stemmer) step1ab() {
 	}
 }
 
-/* step1c(z) turns terminal y to i when there is another vowel in the stem. */
-
+//
+// z.step1c() turns terminal 'y' to 'i' when there is another vowel in the stem. 
+//
 func (z *stemmer) step1c() {
 	if z.ends(_Y) && z.vowelinstem() {
 		z.b[z.k] = 'i'
 	}
 }
 
-
-/* step2(z) maps double suffices to single ones. so -ization ( = -ize plus
-   -ation) maps to -ize etc. note that the string before the suffix must give
-   m(z) > 0. */
-
+//
+// z.step2() maps double suffices to single ones. so -ization ( = -ize plus
+// -ation) maps to -ize etc. note that the string before the suffix must give
+// z.m() > 0. 
+//
 func (z *stemmer) step2() {
 	switch z.b[z.k-1] {
 	case 'a':
@@ -403,6 +364,10 @@ func (z *stemmer) step2() {
 		z.step2_g()
 	}
 }
+
+//
+//  The following functions are spread out from step2 to avoid clutter.
+//
 func (z *stemmer) step2_a() {
 	switch {
 	case z.ends(_ATIONAL):
@@ -411,6 +376,7 @@ func (z *stemmer) step2_a() {
 		z.r(_TION)
 	}
 }
+
 func (z *stemmer) step2_c() {
 	switch {
 	case z.ends(_ENCI):
@@ -419,11 +385,13 @@ func (z *stemmer) step2_c() {
 		z.r(_ANCE)
 	}
 }
+
 func (z *stemmer) step2_e() {
 	if z.ends(_IZER) {
 		z.r(_IZE)
 	}
 }
+
 func (z *stemmer) step2_l() {
 	switch {
 	case z.ends(_BLI):
@@ -438,6 +406,7 @@ func (z *stemmer) step2_l() {
 		z.r(_OUS)
 	}
 }
+
 func (z *stemmer) step2_o() {
 	switch {
 	case z.ends(_IZATION):
@@ -461,6 +430,7 @@ func (z *stemmer) step2_s() {
 		z.r(_OUS)
 	}
 }
+
 func (z *stemmer) step2_t() {
 	switch {
 	case z.ends(_ALITI):
@@ -471,15 +441,16 @@ func (z *stemmer) step2_t() {
 		z.r(_BLE)
 	}
 }
+
 func (z *stemmer) step2_g() {
 	if z.ends(_LOGI) {
 		z.r(_LOG)
 	}
 }
 
-/* step3(z) deals with -ic-, -full, -ness etc. similar strategy to step2. */
-
-
+//
+// z.step3() deals with -ic-, -full, -ness etc. similar strategy to step2. 
+//
 func (z *stemmer) step3() {
 	switch z.b[z.k] {
 	case 'e':
@@ -521,9 +492,10 @@ func (z *stemmer) step3_s() {
 		z.r(__BLANK)
 	}
 }
-/* step4(z) takes off -ant, -ence etc., in context <c>vcvc<v>. */
 
-
+//
+// z.step4() takes off -ant, -ence etc., in context <c>vcvc<v>. 
+//
 func (z *stemmer) step4() {
 	switch z.b[z.k-1] {
 	case 'a':
@@ -552,42 +524,50 @@ func (z *stemmer) step4() {
 		z.step4_z()
 	}
 }
+
 func (z *stemmer) step4_update() {
 	if 1 < z.m() {
 		z.k = z.j
 	}
 }
+
 func (z *stemmer) step4_a() {
 	if z.ends(_AL) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_c() {
 	if z.ends(_ANCE) || z.ends(_ENCE) {
 		z.step4_update()
 	}
 
 }
+
 func (z *stemmer) step4_e() {
 	if z.ends(_ER) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_i() {
 	if z.ends(_IC) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_l() {
 	if z.ends(_ABLE) || z.ends(_IBLE) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_n() {
 	if z.ends(_ANT) || z.ends(_EMENT) || z.ends(_MENT) || z.ends(_ENT) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_o() {
 	if z.ends(_OU) {
 		z.step4_update()
@@ -596,36 +576,41 @@ func (z *stemmer) step4_o() {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_s() {
 	if z.ends(_ISM) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_t() {
 	if z.ends(_ATE) || z.ends(_ITI) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_u() {
 	if z.ends(_OUS) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_v() {
 	if z.ends(_IVE) {
 		z.step4_update()
 	}
 }
+
 func (z *stemmer) step4_z() {
 	if z.ends(_IZE) {
 		z.step4_update()
 	}
 }
 
-/* step5(z) removes a final -e if m(z) > 1, and changes -ll to -l if
-   m(z) > 1. */
-
-
+//
+// z.step5() removes a final -e if z.m() > 1, and changes -ll to -l if
+//   z.m() > 1. 
+//
 func (z *stemmer) step5() {
 	z.j = z.k
 	if 'e' == z.b[z.k] {
@@ -639,12 +624,12 @@ func (z *stemmer) step5() {
 	}
 }
 
-///* In stem(z, b, k), b is a char pointer, and the string to be stemmed is
-//   from b[0] to b[k] inclusive.  Possibly b[k+1] == '\0', but it is not
-//   important. The stemmer adjusts the characters b[0] ... b[k] and returns
-//   the new end-point of the string, k'. Stemming never increases word
-//   length, so 0 <= k' <= k.
-//*/
+//
+// In z.stem(b), b is a char pointer, and the string to be stemmed is from b[0]
+// to b[k] (k is set automatically) inclusive. The stemmer adjusts the
+// characters b[0] ... b[k] and returns the new end-point of the string, k'.
+// Stemming never increases word length, so 0 <= k' <= k.
+//
 func (z *stemmer) stem(b []byte) int {
 
 	z.b = b
@@ -666,12 +651,14 @@ func (z *stemmer) String() string {
 	return fmt.Sprintf("stemmer {b=%s j=%d k=%d}", string(z.b), z.j, z.k)
 }
 
-
+//
+// Stem the parameter word, returns the stemmed term.
+//
 func Stem(word string) string {
 	var z stemmer
 	b := []byte(strings.ToLower(word))
 	bn := z.stem(b)
-	if bn+1 <= len(z.b) {
+	if bn < len(z.b) {
 		return (string)(z.b[:bn+1])
 	}
 	// this should be a "can't happen" type of thing, decide how to handle 

@@ -39,5 +39,4 @@ restrict the functionality, but it is nuisance.
 
 TODO:
 ----- 
-* docs, inline, howto goinstall
-* attribution
+* howto goinstall
