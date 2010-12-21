@@ -153,13 +153,13 @@ func TestEndsSetto (t *testing.T) {
 
   for _,term := range(test) {
     z:=stemmer{[]byte(term), 0, len(term)-1}
-    if z.ends(IES) {
-      z.setto(I)
-      if !z.ends(I) {
-        t.Errorf("setto failed, %s(%d) doesn't ends(%s)\n", string(z.b), z.k, I);
+    if z.ends(_IES) {
+      z.setto(_I)
+      if !z.ends(_I) {
+        t.Errorf("setto failed, %s(%d) doesn't ends(%s)\n", string(z.b), z.k, _I);
       }
     } else {
-      t.Errorf("ends/setto failed, %s doesn't ends(%s)\n", term, IES);
+      t.Errorf("ends/setto failed, %s doesn't ends(%s)\n", term, _IES);
     }
   }
 
@@ -212,7 +212,7 @@ func TestVowelinstem (t *testing.T) {
     t.Errorf("vowelinstem failed")
   }
   z  = stemmer{[]byte("toy"), 2,2}
-  if (!z.ends(Y)) {
+  if (!z.ends(_Y)) {
     t.Errorf("s vowelinstem failed")
   }
   if (!z.vowelinstem()) {

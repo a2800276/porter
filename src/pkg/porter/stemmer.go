@@ -39,67 +39,67 @@ import (
 
 var (
 	_BLANK = []byte("")
-	ABLE = []byte("able")
-	AL  = []byte("al")
-	ALISM = []byte("alism")
-	ALITI = []byte("aliti")
-	ALIZE = []byte("alize")
-	ALLI = []byte("alli")
-	ANCE = []byte("ance")
-	ANCI = []byte("anci")
-	ANT = []byte("ant")
-	AT  = []byte("at")
-	ATE = []byte("ate")
-	ATION = []byte("ation")
-	ATIONAL = []byte("ational")
-	ATIVE = []byte("ative")
-	ATOR = []byte("ator")
-	BILITI = []byte("biliti")
-	BL  = []byte("bl")
-	BLE = []byte("ble")
-	BLI = []byte("bli")
-	E   = []byte("e")
-	ED   = []byte("ed")
-	EED  = []byte("eed")
-	ELI = []byte("eli")
-	EMENT = []byte("ement")
-	ENCE = []byte("ence")
-	ENCI = []byte("enci")
-	ENT = []byte("ent")
-	ENTLI = []byte("entli")
-	ER = []byte("er")
-	FUL= []byte("ful")
-	FULNESS = []byte("fulness")
-	I    = []byte("i")
-	IBLE = []byte("ible")
-	IC = []byte("ic")
-	ICAL = []byte("ical")
-	ICATE = []byte("icate")
-	ICITI = []byte("iciti")
-	IES  = []byte("ies")
-	ING  = []byte("ing")
-	ION = []byte("ion")
-	ISM = []byte("ism")
-	ITI = []byte("iti")
-	IVE = []byte("ive")
-	IVENESS = []byte("iveness")
-	IVITI = []byte("iviti")
-	IZ = []byte("iz")
-	IZATION = []byte("ization")
-	IZE = []byte("ize")
-	IZER = []byte("izer")
-	LOG = []byte("log")
-	LOGI = []byte("logi")
-	MENT = []byte("ment")
-	NESS = []byte("ness")
-	OU = []byte("ou")
-	OUS = []byte("ous")
-	OUSLI = []byte("ousli")
-	OUSNESS = []byte("ousness")
-	SSES = []byte("sses")
-	TION = []byte("tion")
-	TIONAL = []byte("tional")
-	Y    = []byte("y")
+	_ABLE = []byte("able")
+	_AL  = []byte("al")
+	_ALISM = []byte("alism")
+	_ALITI = []byte("aliti")
+	_ALIZE = []byte("alize")
+	_ALLI = []byte("alli")
+	_ANCE = []byte("ance")
+	_ANCI = []byte("anci")
+	_ANT = []byte("ant")
+	_AT  = []byte("at")
+	_ATE = []byte("ate")
+	_ATION = []byte("ation")
+	_ATIONAL = []byte("ational")
+	_ATIVE = []byte("ative")
+	_ATOR = []byte("ator")
+	_BILITI = []byte("biliti")
+	_BL  = []byte("bl")
+	_BLE = []byte("ble")
+	_BLI = []byte("bli")
+	_E   = []byte("e")
+	_ED   = []byte("ed")
+	_EED  = []byte("eed")
+	_ELI = []byte("eli")
+	_EMENT = []byte("ement")
+	_ENCE = []byte("ence")
+	_ENCI = []byte("enci")
+	_ENT = []byte("ent")
+	_ENTLI = []byte("entli")
+	_ER = []byte("er")
+	_FUL= []byte("ful")
+	_FULNESS = []byte("fulness")
+	_I    = []byte("i")
+	_IBLE = []byte("ible")
+	_IC = []byte("ic")
+	_ICAL = []byte("ical")
+	_ICATE = []byte("icate")
+	_ICITI = []byte("iciti")
+	_IES  = []byte("ies")
+	_ING  = []byte("ing")
+	_ION = []byte("ion")
+	_ISM = []byte("ism")
+	_ITI = []byte("iti")
+	_IVE = []byte("ive")
+	_IVENESS = []byte("iveness")
+	_IVITI = []byte("iviti")
+	_IZ = []byte("iz")
+	_IZATION = []byte("ization")
+	_IZE = []byte("ize")
+	_IZER = []byte("izer")
+	_LOG = []byte("log")
+	_LOGI = []byte("logi")
+	_MENT = []byte("ment")
+	_NESS = []byte("ness")
+	_OU = []byte("ou")
+	_OUS = []byte("ous")
+	_OUSLI = []byte("ousli")
+	_OUSNESS = []byte("ousness")
+	_SSES = []byte("sses")
+	_TION = []byte("tion")
+	_TIONAL = []byte("tional")
+	_Y    = []byte("y")
 )
 
 
@@ -329,29 +329,29 @@ func (z *stemmer) r(s []byte) {
 func (z *stemmer) step1ab () {
 	if 's' == z.b[z.k] {
 		switch {
-			case z.ends(SSES):
+			case z.ends(_SSES):
 				z.k -= 2
-			case z.ends(IES):
-				z.setto(I)
+			case z.ends(_IES):
+				z.setto(_I)
 			default:
 				if 's' != z.b[z.k-1] {
 					z.k--
 				}
 		}
 	}
-	if z.ends(EED) {
+	if z.ends(_EED) {
 		if 0 < z.m() {
 			z.k--
 		}
-	} else if (z.ends(ED) || z.ends(ING)) && z.vowelinstem() {
+	} else if (z.ends(_ED) || z.ends(_ING)) && z.vowelinstem() {
 		z.k = z.j
 		switch {
-			case z.ends(AT):
-				z.setto(ATE)
-			case z.ends(BL):
-				z.setto(BLE)
-			case z.ends(IZ):
-				z.setto(IZE)
+			case z.ends(_AT):
+				z.setto(_ATE)
+			case z.ends(_BL):
+				z.setto(_BLE)
+			case z.ends(_IZ):
+				z.setto(_IZE)
 			case z.doublec(z.k):
 				z.k--
 				switch z.b[z.k]{
@@ -362,7 +362,7 @@ func (z *stemmer) step1ab () {
 				}
 			default:
 				if 1 == z.m() && z.cvc(z.k) {
-					z.setto(E)
+					z.setto(_E)
 				}
 		}
 	}
@@ -371,7 +371,7 @@ func (z *stemmer) step1ab () {
 /* step1c(z) turns terminal y to i when there is another vowel in the stem. */
 
 func (z *stemmer) step1c() {
-	if z.ends(Y) && z.vowelinstem() {
+	if z.ends(_Y) && z.vowelinstem() {
 		z.b[z.k] = 'i'
 	}
 }
@@ -395,56 +395,56 @@ func (z *stemmer) step2() {
 }
 func (z *stemmer) step2_a(){
 	switch {
-		case z.ends(ATIONAL): z.r(ATE)
-		case z.ends(TIONAL):  z.r(TION)
+		case z.ends(_ATIONAL): z.r(_ATE)
+		case z.ends(_TIONAL):  z.r(_TION)
 	}
 }
 func (z *stemmer) step2_c(){
 	switch {
-		case z.ends(ENCI): z.r(ENCE)
-		case z.ends(ANCI): z.r(ANCE)
+		case z.ends(_ENCI): z.r(_ENCE)
+		case z.ends(_ANCI): z.r(_ANCE)
 	}
 }
 func (z *stemmer) step2_e(){
-	if z.ends(IZER) {
-		z.r(IZE)
+	if z.ends(_IZER) {
+		z.r(_IZE)
 	}
 }
 func (z *stemmer) step2_l(){
 	switch {
-		case z.ends(BLI):   z.r(BLE)
-		case z.ends(ALLI):  z.r(AL)
-		case z.ends(ENTLI): z.r(ENT)
-		case z.ends(ELI):   z.r(E)
-		case z.ends(OUSLI): z.r(OUS)
+		case z.ends(_BLI):   z.r(_BLE)
+		case z.ends(_ALLI):  z.r(_AL)
+		case z.ends(_ENTLI): z.r(_ENT)
+		case z.ends(_ELI):   z.r(_E)
+		case z.ends(_OUSLI): z.r(_OUS)
 	}
 }
 func (z *stemmer) step2_o(){
 	switch {
-		case z.ends(IZATION): z.r(IZE)
-		case z.ends(ATION):   z.r(ATE)
-		case z.ends(ATOR):    z.r(ATE)
+		case z.ends(_IZATION): z.r(_IZE)
+		case z.ends(_ATION):   z.r(_ATE)
+		case z.ends(_ATOR):    z.r(_ATE)
 	}
 }
 
 func (z *stemmer) step2_s(){
 	switch {
-		case z.ends(ALISM):   z.r(AL)
-		case z.ends(IVENESS): z.r(IVE)
-		case z.ends(FULNESS): z.r(FUL)
-		case z.ends(OUSNESS): z.r(OUS)
+		case z.ends(_ALISM):   z.r(_AL)
+		case z.ends(_IVENESS): z.r(_IVE)
+		case z.ends(_FULNESS): z.r(_FUL)
+		case z.ends(_OUSNESS): z.r(_OUS)
 	}
 }
 func (z *stemmer) step2_t(){
 	switch {
-		case z.ends(ALITI):  z.r(AL)
-		case z.ends(IVITI):  z.r(IVE)
-		case z.ends(BILITI): z.r(BLE)
+		case z.ends(_ALITI):  z.r(_AL)
+		case z.ends(_IVITI):  z.r(_IVE)
+		case z.ends(_BILITI): z.r(_BLE)
 	}
 }
 func (z *stemmer) step2_g(){
-	if z.ends(LOGI) {
-		z.r(LOG)
+	if z.ends(_LOGI) {
+		z.r(_LOG)
 	}
 }
 
@@ -462,24 +462,24 @@ func (z *stemmer) step3 () {
 
 func (z *stemmer) step3_e(){
 	switch {
-		case z.ends(ICATE): z.r(IC)
-		case z.ends(ATIVE): z.r(_BLANK)
-		case z.ends(ALIZE): z.r(AL)
+		case z.ends(_ICATE): z.r(_IC)
+		case z.ends(_ATIVE): z.r(_BLANK)
+		case z.ends(_ALIZE): z.r(_AL)
 	}
 }
 func (z *stemmer) step3_i(){
-	if z.ends(ICITI) {
-		z.r(IC)
+	if z.ends(_ICITI) {
+		z.r(_IC)
 	}
 }
 func (z *stemmer) step3_l(){
 	switch {
-		case z.ends(ICAL): z.r(IC)
-		case z.ends(FUL): z.r(_BLANK)
+		case z.ends(_ICAL): z.r(_IC)
+		case z.ends(_FUL): z.r(_BLANK)
 	}
 }
 func (z *stemmer) step3_s(){
-	if z.ends(NESS) {
+	if z.ends(_NESS) {
 		z.r(_BLANK)
 	}
 }
@@ -508,66 +508,66 @@ func (z *stemmer) step4_update() {
 	}
 }
 func (z *stemmer) step4_a(){
-	if z.ends(AL) {
+	if z.ends(_AL) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_c(){
-	if z.ends(ANCE) || z.ends(ENCE) {
+	if z.ends(_ANCE) || z.ends(_ENCE) {
 		z.step4_update()
 	}
 
 }
 func (z *stemmer) step4_e(){
-	if z.ends(ER) {
+	if z.ends(_ER) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_i(){
-	if z.ends(IC) {
+	if z.ends(_IC) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_l(){
-	if z.ends(ABLE) || z.ends(IBLE) {
+	if z.ends(_ABLE) || z.ends(_IBLE) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_n(){
-	if z.ends(ANT) || z.ends(EMENT) || z.ends(MENT) || z.ends(ENT) {
+	if z.ends(_ANT) || z.ends(_EMENT) || z.ends(_MENT) || z.ends(_ENT) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_o(){
-	if z.ends(OU) {
+	if z.ends(_OU) {
 		z.step4_update()
 	}
-	if z.ends(ION) && ('s' == z.b[z.j] || 't' == z.b[z.j]) {
+	if z.ends(_ION) && ('s' == z.b[z.j] || 't' == z.b[z.j]) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_s(){
-	if z.ends(ISM) {
+	if z.ends(_ISM) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_t(){
-	if z.ends(ATE) || z.ends(ITI) {
+	if z.ends(_ATE) || z.ends(_ITI) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_u(){
-	if z.ends(OUS) {
+	if z.ends(_OUS) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_v(){
-	if z.ends(IVE) {
+	if z.ends(_IVE) {
 		z.step4_update()
 	}
 }
 func (z *stemmer) step4_z(){
-	if z.ends(IZE) {
+	if z.ends(_IZE) {
 		z.step4_update()
 	}
 }
@@ -627,4 +627,5 @@ func Stem(word string)(string) {
   log ("%s %s \n", word, z.String())
 	return ""
 }
+
 
