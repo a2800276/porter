@@ -291,11 +291,8 @@ func (z *stemmer) ends(s []byte) bool {
 func (z *stemmer) setto(s []byte) {
 	j := z.j
 
-	for _, b := range s {
-		z.b[j+1] = b
-		j++
-	}
-	z.k = j
+  copy (z.b[j+1:], s)
+	z.k = j+len(s)
 }
 
 /* r(z, s) is used further down. */
