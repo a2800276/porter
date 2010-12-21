@@ -297,6 +297,40 @@ func TestStep3 (t *testing.T) {
     }
   }
 }
+func TestStep4 (t *testing.T) {
+  
+  var test = map[string]string {
+    "comical"    : "comic",
+    "dependance" : "depend",
+    "dependence" : "depend",
+    "depender"   : "depend",
+    "dependic"   : "depend",
+    "dependable" : "depend",
+    "dependible" : "depend",
+    "dependant" : "depend",
+    "isettlement" : "isettl",
+    "apartment"  : "apart",
+    "apparent"   : "appar",
+    "populou"    : "popul",
+    "compulsion" : "compuls",
+    "compultion" : "compult",
+    "formalism"  : "formal",
+    "populate"   : "popul",
+    "civiliti"   : "civil",
+    "boisterous" : "boister",
+    "tenderize"  : "tender",
+    "tenderive"  : "tender",
+
+  }
+  for term, should := range(test) {
+    z:= stemmer{[]byte(term), 0, len(term)-1}
+    z.step4()
+    have := string(z.b[:z.k+1])
+    if have != should {
+      t.Errorf("step3 (%s) failed, have: %s want %s\n", term, have, should)
+    }
+  }
+}
 
 var tests = []stemmerTest {
 {"a", "a"},
