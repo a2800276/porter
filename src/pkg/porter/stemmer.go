@@ -434,7 +434,7 @@ func (z *stemmer) step2_l(){
 func (z *stemmer) step2_o(){
 	switch {
 		case z.ends(IZATION): z.r(IZE)
-		case z.ends(ATION):  
+		case z.ends(ATION):   z.r(ATE)
 		case z.ends(ATOR):    z.r(ATE)
 	}
 }

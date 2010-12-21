@@ -243,6 +243,41 @@ func TestStep1c (t *testing.T) {
   }
 }
 
+func TestStep2 (t *testing.T) {
+  var test = map[string] string {
+    "capitalization" : "capitalize",
+    "international"  : "internate",
+    "nutritional"    : "nutrition",
+    "clemenci"       : "clemence",
+    "clemanci"       : "clemance",
+    "vaporizer"      : "vaporize",
+    "responsibli"    : "responsible",
+    "specificalli"   : "specifical",
+    "blablaeli"      : "blablae",
+    "judiciousli"    : "judicious",
+    "privatization"  : "privatize",
+    "population"     : "populate",
+    "terminator"     : "terminate",
+    "formalism"      : "formal",
+    "forgiveness"    : "forgive",
+    "forgetfulness"  : "forgetful",
+    "dangerousness"  : "dangerous",
+    "moraliti"       : "moral",
+    "nativiti"       : "native",
+    "availibiliti"   : "availible",
+    "analogi"        : "analog",
+  }
+
+  for term, should := range(test) {
+    z:= stemmer{[]byte(term), 0, len(term)-1}
+    z.step2()
+    have := string(z.b[:z.k+1])
+    if have != should {
+      t.Errorf("step2 (%s) failed, have: %s want %s\n", term, have, should)
+    }
+  }
+}
+
 var tests = []stemmerTest {
 {"a", "a"},
 {"aaron", "aaron"},
