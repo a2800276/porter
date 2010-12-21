@@ -298,7 +298,7 @@ func TestStep3 (t *testing.T) {
   }
 }
 func TestStep4 (t *testing.T) {
-  
+
   var test = map[string]string {
     "comical"    : "comic",
     "dependance" : "depend",
@@ -327,7 +327,22 @@ func TestStep4 (t *testing.T) {
     z.step4()
     have := string(z.b[:z.k+1])
     if have != should {
-      t.Errorf("step3 (%s) failed, have: %s want %s\n", term, have, should)
+      t.Errorf("step4 (%s) failed, have: %s want %s\n", term, have, should)
+    }
+  }
+}
+
+func TestStep5 (t *testing.T) {
+  var test = map[string]string {
+    "lululule" : "lululul",
+    "lululull" : "lululul",
+  }
+  for term, should := range(test) {
+    z:= stemmer{[]byte(term), 0, len(term)-1}
+    z.step5()
+    have := string(z.b[:z.k+1])
+    if have != should {
+      t.Errorf("step5 (%s) failed, have: %s want %s\n", term, have, should)
     }
   }
 }
