@@ -38,76 +38,70 @@ import (
 
 
 var (
-	_BLANK = getBytes("")
-	ABLE = getBytes("able")
-	AL  = getBytes("al")
-	ALISM = getBytes("alism")
-	ALITI = getBytes("aliti")
-	ALIZE = getBytes("alize")
-	ALLI = getBytes("alli")
-	ANCE = getBytes("ance")
-	ANCI = getBytes("anci")
-	ANT = getBytes("ant")
-	AT  = getBytes("at")
-	ATE = getBytes("ate")
-	ATION = getBytes("ation")
-	ATIONAL = getBytes("ational")
-	ATIVE = getBytes("ative")
-	ATOR = getBytes("ator")
-	BILITI = getBytes("biliti")
-	BL  = getBytes("bl")
-	BLE = getBytes("ble")
-	BLI = getBytes("bli")
-	E   = getBytes("e")
-	ED   = getBytes("ed")
-	EED  = getBytes("eed")
-	ELI = getBytes("eli")
-	EMENT = getBytes("ement")
-	ENCE = getBytes("ence")
-	ENCI = getBytes("enci")
-	ENT = getBytes("ent")
-	ENTLI = getBytes("entli")
-	ER = getBytes("er")
-	FUL= getBytes("ful")
-	FULNESS = getBytes("fulness")
-	I    = getBytes("i")
-	IBLE = getBytes("ible")
-	IC = getBytes("ic")
-	ICAL = getBytes("ical")
-	ICATE = getBytes("icate")
-	ICITI = getBytes("iciti")
-	IES  = getBytes("ies")
-	ING  = getBytes("ing")
-	ION = getBytes("ion")
-	ISM = getBytes("ism")
-	ITI = getBytes("iti")
-	IVE = getBytes("ive")
-	IVENESS = getBytes("iveness")
-	IVITI = getBytes("iviti")
-	IZ = getBytes("iz")
-	IZATION = getBytes("ization")
-	IZE = getBytes("ize")
-	IZER = getBytes("izer")
-	LOG = getBytes("log")
-	LOGI = getBytes("logi")
-	MENT = getBytes("ment")
-	NESS = getBytes("ness")
-	OU = getBytes("ou")
-	OUS = getBytes("ous")
-	OUSLI = getBytes("ousli")
-	OUSNESS = getBytes("ousness")
-	SSES = getBytes("sses")
-	TION = getBytes("tion")
-	TIONAL = getBytes("tional")
-	Y    = getBytes("y")
-
- 
+	_BLANK = []byte("")
+	ABLE = []byte("able")
+	AL  = []byte("al")
+	ALISM = []byte("alism")
+	ALITI = []byte("aliti")
+	ALIZE = []byte("alize")
+	ALLI = []byte("alli")
+	ANCE = []byte("ance")
+	ANCI = []byte("anci")
+	ANT = []byte("ant")
+	AT  = []byte("at")
+	ATE = []byte("ate")
+	ATION = []byte("ation")
+	ATIONAL = []byte("ational")
+	ATIVE = []byte("ative")
+	ATOR = []byte("ator")
+	BILITI = []byte("biliti")
+	BL  = []byte("bl")
+	BLE = []byte("ble")
+	BLI = []byte("bli")
+	E   = []byte("e")
+	ED   = []byte("ed")
+	EED  = []byte("eed")
+	ELI = []byte("eli")
+	EMENT = []byte("ement")
+	ENCE = []byte("ence")
+	ENCI = []byte("enci")
+	ENT = []byte("ent")
+	ENTLI = []byte("entli")
+	ER = []byte("er")
+	FUL= []byte("ful")
+	FULNESS = []byte("fulness")
+	I    = []byte("i")
+	IBLE = []byte("ible")
+	IC = []byte("ic")
+	ICAL = []byte("ical")
+	ICATE = []byte("icate")
+	ICITI = []byte("iciti")
+	IES  = []byte("ies")
+	ING  = []byte("ing")
+	ION = []byte("ion")
+	ISM = []byte("ism")
+	ITI = []byte("iti")
+	IVE = []byte("ive")
+	IVENESS = []byte("iveness")
+	IVITI = []byte("iviti")
+	IZ = []byte("iz")
+	IZATION = []byte("ization")
+	IZE = []byte("ize")
+	IZER = []byte("izer")
+	LOG = []byte("log")
+	LOGI = []byte("logi")
+	MENT = []byte("ment")
+	NESS = []byte("ness")
+	OU = []byte("ou")
+	OUS = []byte("ous")
+	OUSLI = []byte("ousli")
+	OUSNESS = []byte("ousness")
+	SSES = []byte("sses")
+	TION = []byte("tion")
+	TIONAL = []byte("tional")
+	Y    = []byte("y")
 )
 
-func getBytes (s string)([]byte) {
-	buf := bytes.NewBufferString(s)
-	return buf.Bytes()
-}
 
 type stemmer struct {
   b   []byte
@@ -185,7 +179,6 @@ func (z *stemmer) m ()(int) {
 	var n,i int 
 
 	for {
-  //log("cvc -> %s %d\n", string(z.b), i)
 		if i>z.j {
 			return n
 		}
@@ -246,7 +239,7 @@ func (z *stemmer) doublec(j int)(bool){
 	return z.consonant(j)
 
 }
-        
+
 func log (msg string, args ...interface{}) {
   fmt.Printf(msg, args...)
 }
@@ -262,7 +255,6 @@ func log (msg string, args ...interface{}) {
 
 func (z *stemmer)cvc(i int) (bool){
 	if	2>i || !z.consonant(i) || z.consonant(i-1) || !z.consonant(i-2) {
-      //log("here %s %d\n", string(z.b), i) 
 			return false
 	}
 	switch z.b[i] {
@@ -276,8 +268,6 @@ func (z *stemmer)cvc(i int) (bool){
 
 
 /* ends(z, s) is TRUE <=> 0,...k ends with the string s. */
-
-
 func (z *stemmer) ends(s []byte)(bool) {
 	length := len(s)
 	//fmt.Printf("%d %d\n", len(z.b), z.k)
@@ -296,8 +286,7 @@ func (z *stemmer) ends(s []byte)(bool) {
 
 
 func (z *stemmer) setto (s []byte) {
-	//length := len(s)
-	j      := z.j
+	j := z.j
 
 	for _, b := range(s) {
 		z.b[j+1] = b
@@ -381,7 +370,6 @@ func (z *stemmer) step1ab () {
 
 /* step1c(z) turns terminal y to i when there is another vowel in the stem. */
 
-
 func (z *stemmer) step1c() {
 	if z.ends(Y) && z.vowelinstem() {
 		z.b[z.k] = 'i'
@@ -464,10 +452,6 @@ func (z *stemmer) step2_g(){
 
 
 func (z *stemmer) step3 () {
-if z.k >= len(z.b){
-  return
-}
-
 	switch z.b[z.k] {
 		case'e':z.step3_e()
 		case'i':z.step3_i()
@@ -635,7 +619,7 @@ func (z *stemmer) String () string {
 
 func Stem(word string)(string) {
 	var z stemmer
-	b := getBytes(strings.ToLower(word))
+	b := []byte(strings.ToLower(word))
 	bn := z.stem(b)
 	if bn+1 <= len(z.b) {
 		return (string)(z.b[:bn+1])
