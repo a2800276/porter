@@ -29,16 +29,13 @@ package porter
    regarded as release 1.)
 */
 
-// #include <stdlib.h>  /* for malloc, free */
-// #include <string.h>  /* for memcmp, memmove */
 
 import (
 	"bytes"
+	"strings"
+	"fmt"
 )
 
-/* You will probably want to move the following declarations to a central
-   header file.
-*/
 
 var (
 	_BLANK = getBytes("")
@@ -119,13 +116,6 @@ type stemmer struct {
 }
 
 
-////extern struct stemmer * create_stemmer(void);
-////extern void free_stemmer(struct stemmer * z);
-////
-////extern int stem(struct stemmer * z, char * b, int k);
-//
-//
-//
 ///* The main part of the stemming algorithm starts here.
 //*/
 //
@@ -149,21 +139,7 @@ type stemmer struct {
 //              will be 5 (the 's' is removed). -/
 //       free_stemmer(z);
 //*/
-//
-//
-//
-///* cons(z, i) is TRUE <=> b[i] is a consonant. ('b' means 'z->b', but here
-//   and below we drop 'z->' in comments.
-//*/
-//
-////static int cons(struct stemmer * z, int i)
-////{  switch (z->b[i])
-////   {  case 'a': case 'e': case 'i': case 'o': case 'u': return FALSE;
-////      case 'y': return (i == 0) ? TRUE : !cons(z, i - 1);
-////      default: return TRUE;
-////   }
-////}
-//
+
 /*
  * Check wheter the letter at position i is a consonant
  */
@@ -172,20 +148,24 @@ func(z *stemmer) consonant (pos int) (bool) {
     return false
   }
   switch (z.b[pos]) {
-    case 'a':
-    case 'e':
-    case 'i':
-    case 'o':
+    case 'a': fallthrough
+    case 'e': fallthrough
+    case 'i': fallthrough
+    case 'o': fallthrough
     case 'u':
       return false
     case 'y':
       if pos == 0 {
-        return false
+        return true
       } else {
-        return z.consonant(pos-1)
+        return z.vowel(pos-1)
       }
   }
 	return true
+}
+
+func (z *stemmer) vowel (pos int) bool {
+  return !z.consonant(pos)
 }
 
 
@@ -205,6 +185,7 @@ func (z *stemmer) m ()(int) {
 	var n,i int 
 
 	for {
+  //log("cvc -> %s %d\n", string(z.b), i)
 		if i>z.j {
 			return n
 		}
@@ -226,7 +207,7 @@ func (z *stemmer) m ()(int) {
 		}
 		i++
 		n++
-		for true {
+		for {
 			if (i>z.j) {
 				return n
 			}
@@ -265,7 +246,10 @@ func (z *stemmer) doublec(j int)(bool){
 	return z.consonant(j)
 
 }
-
+        
+func log (msg string, args ...interface{}) {
+  fmt.Printf(msg, args...)
+}
 /* cvc(z, i) is TRUE <=> i-2,i-1,i has the form consonant - vowel - consonant
    and also if the second c is not w,x or y. this is used when trying to
    restore an e at the end of a short word. e.g.
@@ -277,7 +261,8 @@ func (z *stemmer) doublec(j int)(bool){
 
 
 func (z *stemmer)cvc(i int) (bool){
-	if	2>i || !z.consonant(i) || !z.consonant(i-1) || !z.consonant(i-2) {
+	if	2>i || !z.consonant(i) || z.consonant(i-1) || !z.consonant(i-2) {
+      //log("here %s %d\n", string(z.b), i) 
 			return false
 	}
 	switch z.b[i] {
@@ -295,13 +280,11 @@ func (z *stemmer)cvc(i int) (bool){
 
 func (z *stemmer) ends(s []byte)(bool) {
 	length := len(s)
-	if s[length] != z.b[z.k] {
+	//fmt.Printf("%d %d\n", len(z.b), z.k)
+	if length > z.k {
 		return false
 	}
-	if length > z.k+1 {
-		return false
-	}
-	if !bytes.HasSuffix(z.b, s) {
+	if !bytes.HasSuffix(z.b[:z.k+1], s) {
 		return false
 	}
 	z.j = z.k-length
@@ -313,13 +296,14 @@ func (z *stemmer) ends(s []byte)(bool) {
 
 
 func (z *stemmer) setto (s []byte) {
-	length := len(s)
-	     j := z.j
+	//length := len(s)
+	j      := z.j
+
 	for _, b := range(s) {
 		z.b[j+1] = b
 		j++
 	}
-	z.k = j+length
+	z.k = j
 }
 
 /* r(z, s) is used further down. */
@@ -480,6 +464,11 @@ func (z *stemmer) step2_g(){
 
 
 func (z *stemmer) step3 () {
+fmt.Printf("%d, %d\n", z.k, len(z.b))
+if z.k >= len(z.b){
+  return
+}
+
 	switch z.b[z.k] {
 		case'e':z.step3_e()
 		case'i':z.step3_i()
@@ -623,27 +612,13 @@ func (z *stemmer) step5() {
 //   the new end-point of the string, k'. Stemming never increases word
 //   length, so 0 <= k' <= k.
 //*/
-//
-//extern int stem(struct stemmer * z, char * b, int k)
-//{
-//   if (k <= 1) return k; /*-DEPARTURE-*/
-//   z->b = b; z->k = k; /* copy the parameters into z */
-//
-//   /* With this line, strings of length 1 or 2 don't go through the
-//      stemming process, although no mention is made of this in the
-//      published algorithm. Remove the line to match the published
-//      algorithm. */
-//
-//   step1ab(z); step1c(z); step2(z); step3(z); step4(z); step5(z);
-//   return z->k;
-//}
-//
-func (z *stemmer) Stem (b []byte, k int) (int) {
-	if 1 >=k {
-		return k
+func (z *stemmer) stem (b []byte) (int) {
+	if len (b) <= 1{
+		return len(b)-1
 	}
 	z.b = b
-	z.k = k
+  z.j = 0
+	z.k = len(b)-1
 
 	z.step1ab()
 	z.step1c()
@@ -654,59 +629,18 @@ func (z *stemmer) Stem (b []byte, k int) (int) {
 	return z.k
 }
 
-/////*--------------------stemmer definition ends here------------------------*/
-////
-////#include <stdio.h>
-////#include <stdlib.h>      /* for malloc, free */
-////#include <ctype.h>       /* for isupper, islower, tolower */
-////
-////static char * s;         /* buffer for words tobe stemmed */
-////
-////#define INC 50           /* size units in which s is increased */
-////static int i_max = INC;  /* maximum offset in s */
-////
-////#define LETTER(ch) (isupper(ch) || islower(ch))
-////
-////void stemfile(struct stemmer * z, FILE * f)
-////{  while(TRUE)
-////   {  int ch = getc(f);
-////      if (ch == EOF) return;
-////      if (LETTER(ch))
-////      {  int i = 0;
-////         while(TRUE)
-////         {  if (i == i_max)
-////            {  i_max += INC;
-////               s = realloc(s, i_max + 1);
-////            }
-////            ch = tolower(ch); /* forces lower case */
-////
-////            s[i] = ch; i++;
-////            ch = getc(f);
-////            if (!LETTER(ch)) { ungetc(ch,f); break; }
-////         }
-////         s[stem(z, s, i - 1) + 1] = 0;
-////         /* the previous line calls the stemmer and uses its result to
-////            zero-terminate the string in s */
-////         printf("%s",s);
-////      }
-////      else putchar(ch);
-////   }
-////}
-////
-////int main(int argc, char * argv[])
-////{  int i;
-////
-////   struct stemmer * z = create_stemmer();
-////
-////   s = (char *) malloc(i_max + 1);
-////   for (i = 1; i < argc; i++)
-////   {  FILE * f = fopen(argv[i],"r");
-////      if (f == 0) { fprintf(stderr,"File %s not found\n",argv[i]); exit(1); }
-////      stemfile(z, f);
-////   }
-////   free(s);
-////
-////   free_stemmer(z);
-////
-////   return 0;
-////}
+func (z *stemmer) String () string {
+  return fmt.Sprintf ("stemmer {b=%s j=%d k=%d}", string(z.b), z.j, z.k)
+}
+
+
+func Stem(word string)(string) {
+	var z stemmer
+	b := getBytes(strings.ToLower(word))
+	bn := z.stem(b)
+	if bn+1 <= len(z.b) {
+		return (string)(z.b[:bn+1])
+	}
+	return ""
+}
+
