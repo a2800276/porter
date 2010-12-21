@@ -20,6 +20,14 @@ stemmer can be called as follows:
     ...
     stemmed := porter.Stem(word_to_stem)
 
+Installing
+----------
+
+    goinstall github.com/a2800276/porter-stemmer.go/stemmer
+
+to use the stemmer when installed using goinstall, import:
+
+    import "github.com/a2800276/porter-stemmer.go/src/pkg/porter"
 
 Limitations
 -----------
