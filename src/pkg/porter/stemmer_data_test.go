@@ -278,6 +278,26 @@ func TestStep2 (t *testing.T) {
   }
 }
 
+func TestStep3 (t *testing.T) {
+  var test = map[string]string {
+    "implicate"     : "implic",
+    "communicative" : "communic",
+    "generalize"    : "general",
+    "compliciti"    : "complic", 
+    "comical"       : "comic",
+    "beautiful"     : "beauti",
+    "playfulness"   : "playful",
+  }
+  for term, should := range(test) {
+    z:= stemmer{[]byte(term), 0, len(term)-1}
+    z.step3()
+    have := string(z.b[:z.k+1])
+    if have != should {
+      t.Errorf("step3 (%s) failed, have: %s want %s\n", term, have, should)
+    }
+  }
+}
+
 var tests = []stemmerTest {
 {"a", "a"},
 {"aaron", "aaron"},

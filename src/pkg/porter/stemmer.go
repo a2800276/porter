@@ -464,7 +464,6 @@ func (z *stemmer) step2_g(){
 
 
 func (z *stemmer) step3 () {
-fmt.Printf("%d, %d\n", z.k, len(z.b))
 if z.k >= len(z.b){
   return
 }
