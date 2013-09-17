@@ -23,11 +23,11 @@ stemmer can be called as follows:
 Installing
 ----------
 
-    goinstall github.com/a2800276/porter-stemmer.go/stemmer
+    go get github.com/a2800276/porter
 
 to use the stemmer when installed using goinstall, import:
 
-    import "github.com/a2800276/porter-stemmer.go/src/pkg/porter"
+    import "github.com/a2800276/porter"
 
 Limitations
 -----------
