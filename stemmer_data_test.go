@@ -356,6 +356,7 @@ func TestStep5(t *testing.T) {
 }
 
 var tests = []stemmerTest{
+	{"aeds", "a"},
 	{"a", "a"},
 	{"aaron", "aaron"},
 	{"abaissiez", "abaissiez"},
