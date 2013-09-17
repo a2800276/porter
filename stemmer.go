@@ -171,7 +171,6 @@ func (z *stemmer) m() int {
 		}
 		i++
 	}
-	return n
 }
 
 //
