@@ -1,8 +1,8 @@
 package porter
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 type stemmerTest struct {
@@ -18,7 +18,6 @@ func TestStemmer(t *testing.T) {
 		}
 	}
 }
-
 
 func TestConsonant(t *testing.T) {
 	var consonants = []string{
