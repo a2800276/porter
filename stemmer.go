@@ -340,6 +340,9 @@ func (z *stemmer) step1c() {
 // z.m() > 0.
 //
 func (z *stemmer) step2() {
+	if z.k == 0 {
+		return // "Bug 1" from java impl http://tartarus.org/martin/PorterStemmer/java.txt
+	}
 	switch z.b[z.k-1] {
 	case 'a':
 		z.step2_a()
@@ -492,6 +495,9 @@ func (z *stemmer) step3_s() {
 // z.step4() takes off -ant, -ence etc., in context <c>vcvc<v>.
 //
 func (z *stemmer) step4() {
+	if z.k == 0 {
+		return // "Bug 1" from java impl http://tartarus.org/martin/PorterStemmer/java.txt
+	}
 	switch z.b[z.k-1] {
 	case 'a':
 		z.step4_a()

@@ -11415,6 +11415,7 @@ var tests = []stemmerTest{
 	{"inwardly", "inwardli"},
 	{"inwardness", "inward"},
 	{"inwards", "inward"},
+	{"ion", "ion"}, // "Bug 2" from java impl http://tartarus.org/martin/PorterStemmer/java.txt
 	{"ionia", "ionia"},
 	{"ionian", "ionian"},
 	{"ipse", "ips"},
