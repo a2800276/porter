@@ -3,3 +3,12 @@
 *.6
 *.a
 6.out
+
+# Binary files
+/bin/
+porter
+cmd/porter/porter
+
+# Test coverage
+*.out
+*.html

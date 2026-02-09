@@ -12,7 +12,11 @@ type stemmerTest struct {
 
 func TestStemmer(t *testing.T) {
 	for _, test := range tests {
-		var stemmed = Stem(test.in)
+		stemmed, err := Stem(test.in)
+		if err != nil {
+			t.Errorf("'%s' unexpected error: %v\n", test.in, err)
+			continue
+		}
 		if stemmed != test.out {
 			t.Errorf("'%s' want '%s' have '%s'\n", test.in, test.out, stemmed)
 		}
@@ -89,8 +93,8 @@ func TestM(t *testing.T) {
 			t.Errorf("m(%s) failed, want: %d have %d", term, res, rres)
 		}
 	}
-
 }
+
 func TestCVC(t *testing.T) {
 	var yes = []string{
 		"cav",
@@ -127,8 +131,6 @@ func TestEndsSetto(t *testing.T) {
 	if !b {
 		t.Errorf("Doesn't work at all")
 	}
-	//blowjobs
-	//01234
 	if z.j != 3 {
 		t.Errorf("j not properly incremented: %d", z.j)
 	}
@@ -164,7 +166,6 @@ func TestEndsSetto(t *testing.T) {
 			t.Errorf("ends/setto failed, %s doesn't ends(%s)\n", term, _IES)
 		}
 	}
-
 }
 
 func TestStep1ab(t *testing.T) {
@@ -196,7 +197,6 @@ func TestStep1ab(t *testing.T) {
 		if have != want {
 			t.Errorf("Step1ab (%s) failed, want: %s, have: %s\n", term, want, have)
 		}
-
 	}
 }
 
@@ -223,7 +223,6 @@ func TestVowelinstem(t *testing.T) {
 }
 
 func TestDoubleC(t *testing.T) {
-
 	z := stemmer{[]byte("mmmmmmm"), 6, 6}
 	if !z.doublec(4) {
 		t.Errorf("doublec failed")
@@ -232,7 +231,6 @@ func TestDoubleC(t *testing.T) {
 	if z.doublec(4) {
 		t.Errorf("doublec failed")
 	}
-
 }
 
 func TestStep1c(t *testing.T) {
@@ -307,7 +305,6 @@ func TestStep3(t *testing.T) {
 	}
 }
 func TestStep4(t *testing.T) {
-
 	var test = map[string]string{
 		"comical":     "comic",
 		"dependance":  "depend",
@@ -23889,4 +23886,66 @@ var tests = []stemmerTest{
 	{"zone", "zone"},
 	{"zounds", "zound"},
 	{"zwagger", "zwagger"},
+}
+
+// Test the byte-slice API
+func TestStemBytes(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{"running", "run"},
+		{"RUNNING", "run"},
+		{"easily", "easili"},
+		{"fairly", "fairli"},
+		{"", ""},
+	}
+
+	for _, test := range tests {
+		word := []byte(test.in)
+		stemmed, err := StemBytes(word)
+		if err != nil {
+			t.Errorf("StemBytes(%q) unexpected error: %v", test.in, err)
+			continue
+		}
+		result := string(stemmed)
+		if result != test.out {
+			t.Errorf("StemBytes(%q) = %q, want %q", test.in, result, test.out)
+		}
+	}
+}
+
+// Benchmark the byte-slice API
+func BenchmarkStemBytes(b *testing.B) {
+	word := []byte("running")
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		copy(word, "running")
+		_, _ = StemBytes(word)
+	}
+}
+
+// Examples
+func ExampleStemBytes() {
+	word := []byte("running")
+	stemmed, _ := StemBytes(word)
+	fmt.Println(string(stemmed))
+	// Output: run
+}
+
+// Test error handling
+func TestStemError(t *testing.T) {
+	// Empty input should not error
+	_, err := Stem("")
+	if err != nil {
+		t.Errorf("Stem(\"\") should not error, got: %v", err)
+	}
+
+	stemmed, err := StemBytes([]byte{})
+	if err != nil {
+		t.Errorf("StemBytes(empty) should not error, got: %v", err)
+	}
+	if len(stemmed) != 0 {
+		t.Errorf("StemBytes(empty) should return empty slice, got: %v", stemmed)
+	}
 }

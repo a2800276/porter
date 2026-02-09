@@ -1,19 +1,54 @@
-// The package `porter` implements the Porter stemming algorithm, following,
-// for all pratical purposes, the algorithm published in:
+// Package porter implements the Porter stemming algorithm.
 //
-//     Porter, 1980, An algorithm for suffix stripping, Program, Vol. 14,
-//     no. 3, pp 130-137
+// The Porter stemming algorithm (or Porter stemmer) is a process for removing
+// the commoner morphological and inflexional endings from words in English.
+// Its main use is as part of a term normalisation process that is usually done
+// when setting up Information Retrieval systems.
 //
-// For more information on the alorithm itself, see:
+// This implementation follows, for all practical purposes, the algorithm
+// published in:
 //
-//     http://tartarus.org/~martin/PorterStemmer/
+//	Porter, 1980, An algorithm for suffix stripping, Program, Vol. 14,
+//	no. 3, pp 130-137
 //
+// For more information on the algorithm itself, see:
+//
+//	http://tartarus.org/~martin/PorterStemmer/
+//
+// # Usage
+//
+// For simple use cases, use the Stem function:
+//
+//	stemmed, err := porter.Stem("running")
+//	if err != nil {
+//	    // handle error
+//	}
+//	// stemmed is "run"
+//
+// For better performance with byte slices, use StemBytes:
+//
+//	word := []byte("running")
+//	stemmed, err := porter.StemBytes(word)
+//	if err != nil {
+//	    // handle error
+//	}
+//	// stemmed is []byte("run")
+//
+// StemBytes modifies the input in place and returns the stemmed portion,
+// making it ideal for high-performance scenarios with zero allocations.
 package porter
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
+)
+
+var (
+	// ErrInvalidInput is returned when the input contains invalid characters
+	// or is malformed in a way that prevents stemming.
+	ErrInvalidInput = errors.New("invalid input for stemming")
 )
 
 var (
@@ -83,15 +118,17 @@ var (
 	_Y       = []byte("y")
 )
 
+// stemmer is the internal state structure for the Porter stemming algorithm.
+// It holds the word being processed and internal pointers used during stemming.
 type stemmer struct {
-	b []byte // bytes to work
-	j int    // internal pointer
+	b []byte // bytes to work on (the word being stemmed)
+	j int    // internal pointer to the start of the suffix being considered
 	k int    // points to the last character in b
 }
 
-//
-// Check wheter the letter at pos is a consonant
-//
+// consonant returns true if the letter at position pos is a consonant.
+// The letter 'y' is treated specially: it's a consonant at the start of a word
+// or after a vowel, and a vowel otherwise.
 func (z *stemmer) consonant(pos int) bool {
 	if len(z.b) <= pos {
 		return false
@@ -117,24 +154,21 @@ func (z *stemmer) consonant(pos int) bool {
 	return true
 }
 
-//
-// Check whether the letter at pos is a vowel.
-//
+// vowel returns true if the letter at position pos is a vowel.
+// It's simply the inverse of consonant().
 func (z *stemmer) vowel(pos int) bool {
 	return !z.consonant(pos)
 }
 
+// z.m() measures the number of consonant sequences between 0 and j. if c is
+// a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
+// presence,
 //
-//   z.m() measures the number of consonant sequences between 0 and j. if c is
-//   a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
-//   presence,
-//
-//      <c><v>       gives 0
-//      <c>vc<v>     gives 1
-//      <c>vcvc<v>   gives 2
-//      <c>vcvcvc<v> gives 3
-//      ....
-//
+//	<c><v>       gives 0
+//	<c>vc<v>     gives 1
+//	<c>vcvc<v>   gives 2
+//	<c>vcvcvc<v> gives 3
+//	....
 func (z *stemmer) m() int {
 	var n, i int
 
@@ -173,9 +207,7 @@ func (z *stemmer) m() int {
 	}
 }
 
-//
 // z.vowelinstem() is TRUE if 0,...j contains a vowel.
-//
 func (z *stemmer) vowelinstem() bool {
 	for i := 0; i <= z.j; i++ {
 		if !z.consonant(i) {
@@ -185,9 +217,7 @@ func (z *stemmer) vowelinstem() bool {
 	return false
 }
 
-//
 // z.doublec(j) is TRUE if j,(j-1) contain a double consonant.
-//
 func (z *stemmer) doublec(j int) bool {
 	if 1 > j {
 		return false
@@ -196,17 +226,14 @@ func (z *stemmer) doublec(j int) bool {
 		return false
 	}
 	return z.consonant(j)
-
 }
 
-//
 // z.cvc(i) is TRUE if i-2,i-1,i has the form consonant - vowel - consonant
 // and also if the second c is not w,x or y. this is used when trying to
 // restore an e at the end of a short word. e.g.
 //
-//    cav(e), lov(e), hop(e), crim(e), but
-//    snow, box, tray.
-//
+//	cav(e), lov(e), hop(e), crim(e), but
+//	snow, box, tray.
 func (z *stemmer) cvc(i int) bool {
 	if 2 > i || !z.consonant(i) || z.consonant(i-1) || !z.consonant(i-2) {
 		return false
@@ -222,14 +249,11 @@ func (z *stemmer) cvc(i int) bool {
 	return true
 }
 
-//
 // z.ends(s) is TRUE if 0,...k ends with the string `s`
 // as a side effect, j is set to the start of the
 // suffix `s`
-//
 func (z *stemmer) ends(s []byte) bool {
 	length := len(s)
-	//fmt.Printf("%d %d\n", len(z.b), z.k)
 	if length > z.k {
 		return false
 	}
@@ -240,10 +264,8 @@ func (z *stemmer) ends(s []byte) bool {
 	return true
 }
 
-//
 // z.setto(s) sets (j+1),...k to the characters in the string s,
 // readjusting k
-//
 func (z *stemmer) setto(s []byte) {
 	j := z.j
 
@@ -251,36 +273,32 @@ func (z *stemmer) setto(s []byte) {
 	z.k = j + len(s)
 }
 
-//
 // `r` is a shortcut to replace only after a conconsant sequence
-//
 func (z *stemmer) r(s []byte) {
 	if 0 < z.m() {
 		z.setto(s)
 	}
 }
 
+// z.step1ab() gets rid of plurals and -ed or -ing. e.g.
 //
-//   z.step1ab() gets rid of plurals and -ed or -ing. e.g.
+// caresses  ->  caress
+// ponies    ->  poni
+// ties      ->  ti
+// caress    ->  caress
+// cats      ->  cat
 //
-//   caresses  ->  caress
-//   ponies    ->  poni
-//   ties      ->  ti
-//   caress    ->  caress
-//   cats      ->  cat
+// feed      ->  feed
+// agreed    ->  agree
+// disabled  ->  disable
 //
-//   feed      ->  feed
-//   agreed    ->  agree
-//   disabled  ->  disable
+// matting   ->  mat
+// mating    ->  mate
+// meeting   ->  meet
+// milling   ->  mill
+// messing   ->  mess
 //
-//   matting   ->  mat
-//   mating    ->  mate
-//   meeting   ->  meet
-//   milling   ->  mill
-//   messing   ->  mess
-//
-//   meetings  ->  meet
-//
+// meetings  ->  meet
 func (z *stemmer) step1ab() {
 	if 's' == z.b[z.k] {
 		switch {
@@ -325,20 +343,16 @@ func (z *stemmer) step1ab() {
 	}
 }
 
-//
 // z.step1c() turns terminal 'y' to 'i' when there is another vowel in the stem.
-//
 func (z *stemmer) step1c() {
 	if z.ends(_Y) && z.vowelinstem() {
 		z.b[z.k] = 'i'
 	}
 }
 
-//
 // z.step2() maps double suffices to single ones. so -ization ( = -ize plus
 // -ation) maps to -ize etc. note that the string before the suffix must give
 // z.m() > 0.
-//
 func (z *stemmer) step2() {
 	if z.k == 0 {
 		return // "Bug 1" from java impl http://tartarus.org/martin/PorterStemmer/java.txt
@@ -363,9 +377,7 @@ func (z *stemmer) step2() {
 	}
 }
 
-//
-//  The following functions are spread out from step2 to avoid clutter.
-//
+// The following functions are spread out from step2 to avoid clutter.
 func (z *stemmer) step2_a() {
 	switch {
 	case z.ends(_ATIONAL):
@@ -446,9 +458,7 @@ func (z *stemmer) step2_g() {
 	}
 }
 
-//
 // z.step3() deals with -ic-, -full, -ness etc. similar strategy to step2.
-//
 func (z *stemmer) step3() {
 	switch z.b[z.k] {
 	case 'e':
@@ -491,9 +501,7 @@ func (z *stemmer) step3_s() {
 	}
 }
 
-//
 // z.step4() takes off -ant, -ence etc., in context <c>vcvc<v>.
-//
 func (z *stemmer) step4() {
 	if z.k == 0 {
 		return // "Bug 1" from java impl http://tartarus.org/martin/PorterStemmer/java.txt
@@ -542,7 +550,6 @@ func (z *stemmer) step4_c() {
 	if z.ends(_ANCE) || z.ends(_ENCE) {
 		z.step4_update()
 	}
-
 }
 
 func (z *stemmer) step4_e() {
@@ -608,10 +615,9 @@ func (z *stemmer) step4_z() {
 	}
 }
 
-//
 // z.step5() removes a final -e if z.m() > 1, and changes -ll to -l if
-//   z.m() > 1.
 //
+//	z.m() > 1.
 func (z *stemmer) step5() {
 	z.j = z.k
 	if 'e' == z.b[z.k] {
@@ -625,14 +631,11 @@ func (z *stemmer) step5() {
 	}
 }
 
-//
 // In z.stem(b), b is a char pointer, and the string to be stemmed is from b[0]
 // to b[k] (k is set automatically) inclusive. The stemmer adjusts the
 // characters b[0] ... b[k] and returns the new end-point of the string, k'.
 // Stemming never increases word length, so 0 <= k' <= k.
-//
 func (z *stemmer) stem(b []byte) int {
-
 	z.b = b
 	z.j = 0
 	z.k = len(b) - 1
@@ -652,16 +655,88 @@ func (z *stemmer) String() string {
 	return fmt.Sprintf("stemmer {b=%s j=%d k=%d}", string(z.b), z.j, z.k)
 }
 
+// Stem stems the given word and returns the stemmed form as a string.
 //
-// Stem the parameter word, returns the stemmed term.
+// The input word is converted to lowercase and processed according to the
+// Porter stemming algorithm. This function allocates a new byte slice for
+// processing and converts the result back to a string.
 //
-func Stem(word string) string {
+// Empty input is valid and returns an empty string with no error.
+//
+// For better performance when working with []byte slices, use StemBytes instead.
+//
+// Returns the stemmed word and nil error on success, or an empty string and
+// an error if stemming fails.
+//
+// Example:
+//
+//	stemmed, err := porter.Stem("running")
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	// stemmed is "run"
+func Stem(word string) (string, error) {
+	if word == "" {
+		return "", nil
+	}
 	var z stemmer
 	b := []byte(strings.ToLower(word))
 	bn := z.stem(b)
-	if bn < len(z.b) {
-		return (string)(z.b[:bn+1])
+	if bn >= 0 && bn < len(z.b) {
+		return string(z.b[:bn+1]), nil
 	}
-	// this should be a "can't happen" type of thing, decide how to handle
-	return ""
+	return "", ErrInvalidInput
+}
+
+// StemBytes stems the word in the byte slice b in-place and returns a slice
+// containing just the stemmed word.
+//
+// The input slice is modified in place and converted to lowercase. This function
+// does not allocate and is more efficient than Stem when working with byte slices.
+//
+// The input slice must contain at least the word to be stemmed. Extra capacity
+// is not required. The returned slice is a sub-slice of the input.
+//
+// Empty input is valid and returns an empty slice with no error.
+//
+// Returns a slice containing the stemmed word and nil on success, or an empty
+// slice and an error if stemming fails.
+//
+// Example:
+//
+//	word := []byte("running")
+//	stemmed, err := porter.StemBytes(word)
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	// stemmed is []byte("run")
+//
+// For efficient batch processing, reuse the buffer:
+//
+//	buf := make([]byte, 64)
+//	for _, word := range words {
+//	    buf = buf[:len(word)]
+//	    copy(buf, word)
+//	    stemmed, err := porter.StemBytes(buf)
+//	    if err != nil {
+//	        continue // or handle error
+//	    }
+//	    // use stemmed
+//	}
+func StemBytes(b []byte) ([]byte, error) {
+	if len(b) == 0 {
+		return b[:0], nil
+	}
+	// Convert to lowercase in place
+	for i := 0; i < len(b); i++ {
+		if b[i] >= 'A' && b[i] <= 'Z' {
+			b[i] += 'a' - 'A'
+		}
+	}
+	var z stemmer
+	bn := z.stem(b)
+	if bn >= 0 && bn < len(b) {
+		return b[:bn+1], nil
+	}
+	return b[:0], ErrInvalidInput
 }
